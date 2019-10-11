@@ -3,10 +3,7 @@
   "version": "1.0.2",
   "description": "UniqueOGP automatically produces inherent OGP image from the character string of the title.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "demo": "browserify demo.js -o bundle.js"
-  },
+  "scripts": {},
   "author": "kimihiro_n",
   "license": "MIT",
   "dependencies": {

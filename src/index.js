@@ -4,25 +4,33 @@ const http = require('http');
     jquery = require('jquery'),
     jsdom = require('jsdom'),
     jCanvas = require('jcanvas'),
-    unique_ogp = require('./unique_ogp.js');
+    generator = require('./generator.js');
 
 const { JSDOM } = jsdom;
-const port = process.env.PORT || 8088;
+const PORT = process.env.PORT || 8088;
 
+const CANVAS_WIDTH = 1200
+const CANVAS_HEIGHT = 630
+const CANVAS = `<!DOCTYPE html><canvas id="canvas" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"></canvas>`;
 
-const getArticon = function(title, brand) {
-    const { window } = new JSDOM(`<!DOCTYPE html><canvas id="canvas" width="1200" height="630"></canvas>`, {runScripts: "outside-only"});
+const generateImage = (title, description, site_name) => {
+    const canvas = generateOgpCanvas(title, description, site_name);
+    const image = canvas.toDataURL('image/png').split(',')[1];
+    return Buffer.from(image, 'base64')
+};
+
+const generateOgpCanvas = (title, description, site_name) => {
+    const { window } = new JSDOM(CANVAS, {runScripts: "outside-only", pretendToBeVisual: true});
     const $ = jquery(window);
     jCanvas($, window);
-    const canvas = $("#canvas");
-    canvas = unique_ogp.draw(canvas, title, brand);
+
+    let canvas = $("#canvas");
+    canvas[0].width = CANVAS_WIDTH;
+    canvas[0].height = CANVAS_HEIGHT;
+    canvas = generator.draw(canvas, title, site_name);
     return canvas[0];
 };
 
-
-function atob(a) {
-    return Buffer.from(a, 'base64')
-}
 
 // create server
 http.createServer(function(request, response) {
@@ -33,10 +41,9 @@ http.createServer(function(request, response) {
         response.write("Add Query to this page. '?title=$TITLE&brand=$BRAND'");
         return response.end();
     }
-    let canvas = getArticon(title, brand);
-    const image = atob(canvas.toDataURL('image/png').split(',')[1]);
+    let image = generateImage(title, '', brand);
     response.writeHead(200, {"Content-Type": "image/png"});
     response.write(image);
     response.end();
 
-}).listen(port, '0.0.0.0');
+}).listen(PORT, '0.0.0.0');
