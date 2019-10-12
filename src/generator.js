@@ -1,15 +1,15 @@
 const md5 = require("./md5.js"),
     color = require("onecolor");
-const { createCanvas, loadImage } = require('canvas')
+const { createCanvas, registerFont } = require('canvas');
 
 const hsv2rgb = (h, s, v) => (new color.HSV(h / 255, s / 255, v / 255)).hex();
 
 const getFrontColor = (h, i) => {
-    i = i % 10;
-    return hsv2rgb(h, 100 - i * 10, 190 + i);
+    i = i % 3;
+    return hsv2rgb(h, 10 - i * 10, 220 + i);
 };
 
-const getBackColor = h => hsv2rgb(h, 10, 220);
+const getBackColor = h => hsv2rgb(h, 10, 200);
 
 const getAccentColor = (h, i) => {
     i = i % 5;
@@ -43,13 +43,14 @@ const charcount = str => {
     return len;
 };
 
-exports.draw = (canvas, title, brand) => {
+exports.draw = (canvas, title, description, siteName) => {
     title = title || "";
-    brand = brand || "";
+    siteName = siteName || "";
+    description = description || "";
     const [p1, p2, p3, p4, p5, p6] = generateSeeds(title);
     const base_hue = p1;
     const context = createCanvas(200, 200).getContext('2d')
-    context.font = "100px 'Noto Sans CJK JP Black', 'Noto Sans Japanese'"
+    context.font = '100px "noto"';
 
     console.log(p1,p2, p3, p4, p5, p6);
 
@@ -75,7 +76,7 @@ exports.draw = (canvas, title, brand) => {
         mask: true,
     });
 
-    // // Small Bubbles
+    // // // Small Bubbles
     // var bubble_count = (p1 + p2 + p3) % 50 + 80;
     // for (var i = 1; i < bubble_count; i++) {
     //     var x = ((i + p1) * (i + p4)) % 1200;
@@ -89,12 +90,12 @@ exports.draw = (canvas, title, brand) => {
     //         cornerRadius: 50
     //     });
     // }
-    //
+
     // // Large Bubbles
-    var large_bubble_count = (p1 + p2 + p3) % 2 + 3;
+    var large_bubble_count = (p1 + p2 + p3) % 3 + 3;
     for (var i = 1; i <= large_bubble_count; i++) {
         var x = (i * (300 + p4 - p5) + i * p2) % (1200 - 100) + 50;
-        var y = ((i + p4) * (i + p2)) % (630 - 50);
+        var y = ((i + p4) * (i + p2 + p1)) % (630 - 80);
         var box_size = (630 - y + 100) / 2;
         canvas.drawRect({
             fillStyle: getAccentColor(h, i),
@@ -107,14 +108,30 @@ exports.draw = (canvas, title, brand) => {
 
     // // Title background
     // canvas.drawRect({
-    //     fillStyle: "rgba(0, 0, 0, 0.8)",
+    //     fillStyle: "rgba(0,0,0,0.19)",
     //     x: 1200 / 2,
-    //     y: 630 - 70,
+    //     y: 0,
     //     width: 1200,
-    //     height: 140
+    //     height: 440
     // });
 
     const title_size = context.measureText(title)
+
+    const title_font_size = Math.min(1000 / title_size.width * 100, 140);
+    console.log(title_font_size)
+    // Title
+    canvas.drawText({
+        fillStyle: "#030012",
+        name: 'title',
+        x: 1200 / 2 - 30,
+        y: 120,
+        fontSize: title_font_size,
+        align: 'left',
+        fontFamily: "noto",
+        fontWeight: 900,
+        text: "NodeCanvasでOGP用の画像を\n生成してみる",
+        lineHeight: 1.3,
+    });
 
     // Brand
     canvas.drawText({
@@ -125,41 +142,39 @@ exports.draw = (canvas, title, brand) => {
         shadowBlur: 5,
         shadowX: 3, shadowY: 3,
         fontSize: 30,
-        fontFamily: "'Noto Sans CJK JP Black', 'Noto Sans Japanese'",
-        fontWeight: 900,
+        fontFamily: "'noto'",
+        fontWeight: 100,
         maxWidth: 300,
-        text: brand,
+        text: siteName,
     });
-
-
-    title = title.replace('\\n', "\n")
-    const title_font_size = Math.min(1000 / title_size.width * 100, 140);
-    console.log(title_font_size)
-    // Title
-    canvas.drawText({
-        fillStyle: "#030012",
-        name: 'title',
-        x: 1200 / 2,
-        y: 140,
-        fontSize: title_font_size,
-        maxWidth: 100,
-        align: 'left',
-        fontFamily: "'Noto Sans CJK JP Black', 'Noto Sans Japanese'",
-        fontWeight: 900,
-        text: title,
-        lineHeight: 2,
-    });
-
-
 
     // hashtag
     canvas.drawText({
-        fillStyle: "#6c7ab5",
-        x: 1200 - 50,
-        y: 630 - 10,
-        fontSize: 12,
-        fontFamily: "'Noto Sans CJK JP Black', 'Noto Sans Japanese'",
+        fillStyle: "#292514",
+        x: 1200 - 110,
+        y: 630 - 20,
+        fontSize: 16,
+        fontFamily: "'noto'",
+        fontWeight: 400,
         text: "#ogp_image_generator",
+    });
+
+    // description
+    canvas.drawText({
+        fillStyle: "#474836",
+        x: 1200 / 2,
+        y: 430,
+        fontSize: 40,
+        lineHeight: 1.5,
+        align: 'left',
+        // fontFamily: "'Noto Sans CJK JP Black', 'Noto Sans Japanese'",
+        text: "NodeJS + NodeCanvasでブログのOGP用画像を\n"
+            + "動的生成するテストです。某はてなのブログみた\n"
+            + "いに、タイトルと本文に応じて動的に画像を生成\n"
+            + "しています。ここに本文が入ります。ここに本文\n"
+            + "が入ります。ここに本文が入ります。ここに本文\n"
+            + "が入ります。ここに本文が入ります。ここに本…\n"
+
     });
 
     //Brightness

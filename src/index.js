@@ -5,7 +5,7 @@ const http = require('http');
     jsdom = require('jsdom'),
     jCanvas = require('jcanvas'),
     generator = require('./generator.js');
-
+const { registerFont } = require('canvas');
 const { JSDOM } = jsdom;
 const PORT = process.env.PORT || 8088;
 
@@ -20,6 +20,8 @@ const generateImage = (title, description, site_name) => {
 };
 
 const generateOgpCanvas = (title, description, site_name) => {
+    registerFont('./fonts/NotoSansCJKjp-Black.otf', {'family': 'noto', 'weight': 'bold'});
+
     const { window } = new JSDOM(CANVAS, {runScripts: "outside-only", pretendToBeVisual: true});
     const $ = jquery(window);
     jCanvas($, window);
@@ -27,7 +29,7 @@ const generateOgpCanvas = (title, description, site_name) => {
     let canvas = $("#canvas");
     canvas[0].width = CANVAS_WIDTH;
     canvas[0].height = CANVAS_HEIGHT;
-    canvas = generator.draw(canvas, title, site_name);
+    canvas = generator.draw(canvas, title, description, site_name);
     return canvas[0];
 };
 
